@@ -26,8 +26,8 @@ class ResponsiveNavigationBar extends StatelessWidget {
     this.activeButtonFlexFactor = 160,
     this.inactiveButtonsFlexFactor = 60,
     this.debugPaint = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   /// List of buttons.
   ///
@@ -394,10 +394,16 @@ class _Button extends StatelessWidget {
                           end: active ? activeIconColor : inactiveIconColor,
                         ),
                         builder: (context, color, _) {
-                          return Icon(
-                            icon,
-                            size: iconSize,
-                            color: color,
+                          return CircleAvatar(
+                            radius: 25,
+                            backgroundColor: active
+                                ? activeIconColor.withValues(alpha: 0.6)
+                                : inactiveIconColor.withValues(alpha: 0.6),
+                            child: Icon(
+                              icon,
+                              size: iconSize,
+                              color: color,
+                            ),
                           );
                         },
                       ),
