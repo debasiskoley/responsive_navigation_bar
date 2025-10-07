@@ -18,6 +18,7 @@ class ResponsiveNavigationBar extends StatelessWidget {
     this.outerPadding = const EdgeInsets.fromLTRB(8, 0, 8, 5),
     this.selectedIndex = 0,
     this.fontSize,
+    this.tabHeight,
     this.textStyle = const TextStyle(fontWeight: FontWeight.bold),
     this.activeIconColor = Colors.white,
     this.inactiveIconColor = Colors.white,
@@ -108,6 +109,9 @@ class ResponsiveNavigationBar extends StatelessWidget {
   /// - unless you pass something like above.
   final double? fontSize;
 
+  /// Height for all tab.
+  final double? tabHeight;
+
   /// TextStyle for all buttons.
   ///
   /// The [TextStyle]'s [fontSize] value is always overridden by [fontSize].
@@ -185,7 +189,9 @@ class ResponsiveNavigationBar extends StatelessWidget {
           textStyle: textStyle.copyWith(
               color: button.textColor, fontSize: buttonFontSize),
           icon: button.icon,
-          iconSize: buttonFontSize,
+          iconWidget: button.iconWidget,
+          iconSize: button.iconSize ?? buttonFontSize,
+          tabHeight: tabHeight,
           activeIconColor: activeIconColor,
           inactiveIconColor: inactiveIconColor,
           animationDuration: animationDuration,
@@ -222,7 +228,7 @@ class ResponsiveNavigationBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: backgroundGradient == null
                       ? (backgroundColor ?? const Color(0x7d8c8c8c))
-                          .withOpacity(backgroundOpacity)
+                          .withValues(alpha: backgroundOpacity)
                       : null,
                   gradient: backgroundGradient,
                   borderRadius: BorderRadius.all(
@@ -249,18 +255,27 @@ class NavigationBarButton {
   /// [ NavigationBarButton(...), NavigationBarButton(...), ... ]
   const NavigationBarButton({
     this.text = '',
-    this.icon = Icons.hourglass_empty,
+    this.icon, //  = Icons.hourglass_empty
+    this.iconSize,
+    this.iconWidget = const SizedBox.shrink(),
     this.padding,
     this.backgroundColor = Colors.grey,
     this.backgroundGradient,
     this.textColor,
+    this.tabHeight,
   });
 
   /// Text of the button (if active).
   final String text;
 
   /// Icon of the button.
-  final IconData icon;
+  final IconData? icon;
+
+  /// Icon of the button.
+  final double? iconSize;
+
+  /// IconWidget of the button.
+  final Widget iconWidget;
 
   /// Padding of the button.
   ///
@@ -291,6 +306,9 @@ class NavigationBarButton {
   /// If null, the button uses the color of the
   /// [ResponsiveNavigationBar]'s [textStyle].
   final Color? textColor;
+
+  /// Height of the button.
+  final double? tabHeight;
 }
 
 class _Button extends StatelessWidget {
@@ -301,7 +319,9 @@ class _Button extends StatelessWidget {
     required this.textColor,
     required this.textStyle,
     required this.icon,
+    required this.iconWidget,
     required this.iconSize,
+    required this.tabHeight,
     required this.activeIconColor,
     required this.inactiveIconColor,
     required this.animationDuration,
@@ -321,8 +341,10 @@ class _Button extends StatelessWidget {
   final String text;
   final Color? textColor;
   final TextStyle textStyle;
-  final IconData icon;
+  final IconData? icon;
+  final Widget iconWidget;
   final double iconSize;
+  final double? tabHeight;
   final Color activeIconColor;
   final Color inactiveIconColor;
   final Duration animationDuration;
@@ -357,8 +379,8 @@ class _Button extends StatelessWidget {
       child: ColoredBox(
         color: kDebugMode && debugPaint
             ? index.remainder(2) == 0
-                ? Colors.green.withOpacity(0.3)
-                : Colors.red.withOpacity(0.3)
+                ? Colors.green.withValues(alpha: 0.3)
+                : Colors.red.withValues(alpha: 0.3)
             : Colors.transparent,
         child: GestureDetector(
           onTap: onTap,
@@ -382,7 +404,7 @@ class _Button extends StatelessWidget {
             child: Padding(
               padding: padding,
               child: SizedBox(
-                height: buttonHeight,
+                height: tabHeight ?? buttonHeight,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -394,17 +416,13 @@ class _Button extends StatelessWidget {
                           end: active ? activeIconColor : inactiveIconColor,
                         ),
                         builder: (context, color, _) {
-                          return CircleAvatar(
-                            radius: 25,
-                            backgroundColor: active
-                                ? activeIconColor.withValues(alpha: 0.6)
-                                : inactiveIconColor.withValues(alpha: 0.6),
-                            child: Icon(
-                              icon,
-                              size: iconSize,
-                              color: color,
-                            ),
-                          );
+                          return icon != null
+                              ? Icon(
+                                  icon,
+                                  size: iconSize,
+                                  color: color,
+                                )
+                              : iconWidget;
                         },
                       ),
                     ),
